@@ -7,15 +7,48 @@ tags:
   - name: ArtifactService
   - name: OAuthService
   - name: RepositoryService
-  - name: BranchProtectionService
   - name: UserService
   - name: ProfileService
-  - name: KeyService
+  - name: PermissionsService
+  - name: ProvidersService
 consumes:
   - application/json
 produces:
   - application/json
 paths:
+  /api/v1/artifact/name/{name}:
+    get:
+      operationId: ArtifactService_GetArtifactByName
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1GetArtifactByNameResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+      tags:
+        - ArtifactService
   /api/v1/artifact/{id}:
     get:
       operationId: ArtifactService_GetArtifactById
@@ -33,12 +66,54 @@ paths:
           in: path
           required: true
           type: string
-        - name: latestVersions
+        - name: context.provider
+          description: name of the provider
           in: query
           required: false
-          type: integer
-          format: int32
-        - name: tag
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+      tags:
+        - ArtifactService
+  /api/v1/artifacts:
+    get:
+      operationId: ArtifactService_ListArtifacts2
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListArtifactsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: provider
+          in: query
+          required: false
+          type: string
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+        - name: from
           in: query
           required: false
           type: string
@@ -61,101 +136,65 @@ paths:
           in: path
           required: true
           type: string
-        - name: projectId
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+        - name: from
           in: query
           required: false
           type: string
       tags:
         - ArtifactService
-  /api/v1/auth/callback/{provider}/cli:
-    get:
-      summary: buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
-      description: protolint:disable:this
-      operationId: OAuthService_ExchangeCodeForTokenCLI
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/apiHttpBody'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: provider
-          in: path
-          required: true
-          type: string
-        - name: projectId
-          in: query
-          required: false
-          type: string
-        - name: code
-          in: query
-          required: false
-          type: string
-        - name: state
-          in: query
-          required: false
-          type: string
-        - name: redirectUri
-          in: query
-          required: false
-          type: string
-      tags:
-        - OAuthService
-  /api/v1/auth/callback/{provider}/web:
-    get:
-      operationId: OAuthService_ExchangeCodeForTokenWEB
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1ExchangeCodeForTokenWEBResponse'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: provider
-          in: path
-          required: true
-          type: string
-        - name: projectId
-          in: query
-          required: false
-          type: string
-        - name: code
-          in: query
-          required: false
-          type: string
-        - name: redirectUri
-          in: query
-          required: false
-          type: string
-      tags:
-        - OAuthService
-  /api/v1/auth/revoke-all:
+  /api/v1/auth/token:
     post:
-      summary: |-
-        RevokeOauthTokens is used to revoke all tokens
-        this a nuclear option and should only be used in emergencies
-      operationId: OAuthService_RevokeOauthTokens
+      operationId: OAuthService_StoreProviderToken2
       responses:
         '200':
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1RevokeOauthTokensResponse'
+            $ref: '#/definitions/v1StoreProviderTokenResponse'
         default:
           description: An unexpected error response.
           schema:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/v1RevokeOauthTokensRequest'
+        - name: provider
+          in: query
+          required: false
+          type: string
+        - name: accessToken
+          in: query
+          required: false
+          type: string
+        - name: owner
+          in: query
+          required: false
+          type: string
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
       tags:
         - OAuthService
   /api/v1/auth/url:
@@ -171,14 +210,6 @@ paths:
           schema:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
-        - name: provider
-          in: query
-          required: false
-          type: string
-        - name: projectId
-          in: query
-          required: false
-          type: string
         - name: cli
           in: query
           required: false
@@ -189,6 +220,24 @@ paths:
           type: integer
           format: int32
         - name: owner
+          in: query
+          required: false
+          type: string
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+        - name: redirectUrl
           in: query
           required: false
           type: string
@@ -219,39 +268,61 @@ paths:
           required: true
           type: string
           format: date-time
-        - name: projectId
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
           in: query
           required: false
           type: string
       tags:
         - OAuthService
-  /api/v1/auth/{provider}/revoke/{projectId}:
-    post:
-      summary: revoke token for a project
-      operationId: OAuthService_RevokeOauthProjectToken
+  /api/v1/auth/verify/{timestamp}:
+    get:
+      summary: >-
+        VerifyProviderTokenFrom verifies that a token has been created for a
+        provider since given timestamp
+      operationId: OAuthService_VerifyProviderTokenFrom2
       responses:
         '200':
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1RevokeOauthProjectTokenResponse'
+            $ref: '#/definitions/v1VerifyProviderTokenFromResponse'
         default:
           description: An unexpected error response.
           schema:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
+        - name: timestamp
+          in: path
+          required: true
+          type: string
+          format: date-time
         - name: provider
-          in: path
-          required: true
+          in: query
+          required: false
           type: string
-        - name: projectId
-          in: path
-          required: true
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
           type: string
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
       tags:
         - OAuthService
   /api/v1/auth/{provider}/token:
@@ -275,30 +346,9 @@ paths:
           in: body
           required: true
           schema:
-            type: object
-            properties:
-              projectId:
-                type: string
-              accessToken:
-                type: string
-              owner:
-                type: string
+            $ref: '#/definitions/OAuthServiceStoreProviderTokenBody'
       tags:
         - OAuthService
-  /api/v1/branchprotection:
-    get:
-      operationId: BranchProtectionService_GetBranchProtection
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1GetBranchProtectionResponse'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      tags:
-        - BranchProtectionService
   /api/v1/health:
     get:
       operationId: HealthService_CheckHealth
@@ -313,32 +363,14 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       tags:
         - HealthService
-  /api/v1/key:
-    get:
-      operationId: KeyService_GetPublicKey
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1GetPublicKeyResponse'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: keyIdentifier
-          in: query
-          required: false
-          type: string
-      tags:
-        - KeyService
+  /api/v1/permissions/assign:
     post:
-      operationId: KeyService_CreateKeyPair
+      operationId: PermissionsService_AssignRole
       responses:
         '200':
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1CreateKeyPairResponse'
+            $ref: '#/definitions/v1AssignRoleResponse'
         default:
           description: An unexpected error response.
           schema:
@@ -348,9 +380,111 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/v1CreateKeyPairRequest'
+            $ref: '#/definitions/v1AssignRoleRequest'
       tags:
-        - KeyService
+        - PermissionsService
+  /api/v1/permissions/assignments:
+    get:
+      operationId: PermissionsService_ListRoleAssignments
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListRoleAssignmentsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+      tags:
+        - PermissionsService
+  /api/v1/permissions/remove/{roleAssignment.role}/subject/{roleAssignment.subject}:
+    delete:
+      operationId: PermissionsService_RemoveRole
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1RemoveRoleResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: roleAssignment.role
+          description: role is the role that is assigned.
+          in: path
+          required: true
+          type: string
+        - name: roleAssignment.subject
+          description: subject is the subject to which the role is assigned.
+          in: path
+          required: true
+          type: string
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+        - name: roleAssignment.project
+          description: projectt is the projectt in which the role is assigned.
+          in: query
+          required: false
+          type: string
+      tags:
+        - PermissionsService
+  /api/v1/permissions/roles:
+    get:
+      operationId: PermissionsService_ListRoles
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListRolesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+      tags:
+        - PermissionsService
   /api/v1/profile:
     post:
       operationId: ProfileService_CreateProfile
@@ -369,6 +503,25 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/v1CreateProfileRequest'
+      tags:
+        - ProfileService
+    put:
+      operationId: ProfileService_UpdateProfile
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1UpdateProfileResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1UpdateProfileRequest'
       tags:
         - ProfileService
   /api/v1/profile/name/{name}/status:
@@ -390,14 +543,16 @@ paths:
           required: true
           type: string
         - name: context.provider
-          in: query
-          required: false
-          type: string
-        - name: context.organization
+          description: name of the provider
           in: query
           required: false
           type: string
         - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
           in: query
           required: false
           type: string
@@ -425,6 +580,15 @@ paths:
           required: false
           type: boolean
         - name: rule
+          description: rule is the type of the rule. Deprecated in favor of rule_type
+          in: query
+          required: false
+          type: string
+        - name: ruleType
+          in: query
+          required: false
+          type: string
+        - name: ruleName
           in: query
           required: false
           type: string
@@ -449,14 +613,16 @@ paths:
           required: true
           type: string
         - name: context.provider
-          in: query
-          required: false
-          type: string
-        - name: context.organization
+          description: name of the provider
           in: query
           required: false
           type: string
         - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
           in: query
           required: false
           type: string
@@ -480,14 +646,16 @@ paths:
           required: true
           type: string
         - name: context.provider
-          in: query
-          required: false
-          type: string
-        - name: context.organization
+          description: name of the provider
           in: query
           required: false
           type: string
         - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
           in: query
           required: false
           type: string
@@ -507,14 +675,16 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: context.provider
-          in: query
-          required: false
-          type: string
-        - name: context.organization
+          description: name of the provider
           in: query
           required: false
           type: string
         - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
           in: query
           required: false
           type: string
@@ -534,19 +704,105 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: context.provider
-          in: query
-          required: false
-          type: string
-        - name: context.organization
+          description: name of the provider
           in: query
           required: false
           type: string
         - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
           in: query
           required: false
           type: string
       tags:
         - ProfileService
+  /api/v1/providers:
+    get:
+      operationId: ProvidersService_ListProviders
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListProvidersResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+        - name: limit
+          description: limit is the maximum number of providers to return.
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: cursor
+          description: >-
+            cursor is the cursor to use for the page of results, empty if at the
+            beginning
+          in: query
+          required: false
+          type: string
+      tags:
+        - ProvidersService
+  /api/v1/repositories:
+    get:
+      operationId: RepositoryService_ListRepositories2
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListRepositoriesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: provider
+          in: query
+          required: false
+          type: string
+        - name: limit
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+        - name: cursor
+          in: query
+          required: false
+          type: string
+      tags:
+        - RepositoryService
   /api/v1/repositories/provider/{provider}:
     get:
       operationId: RepositoryService_ListRepositories
@@ -564,20 +820,29 @@ paths:
           in: path
           required: true
           type: string
-        - name: projectId
-          in: query
-          required: false
-          type: string
         - name: limit
           in: query
           required: false
           type: integer
           format: int32
-        - name: offset
+        - name: context.provider
+          description: name of the provider
           in: query
           required: false
-          type: integer
-          format: int32
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+        - name: cursor
+          in: query
+          required: false
+          type: string
       tags:
         - RepositoryService
   /api/v1/repositories/provider/{provider}/remote:
@@ -597,7 +862,50 @@ paths:
           in: path
           required: true
           type: string
-        - name: projectId
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+      tags:
+        - RepositoryService
+  /api/v1/repositories/remote:
+    get:
+      operationId: RepositoryService_ListRemoteRepositoriesFromProvider2
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListRemoteRepositoriesFromProviderResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: provider
+          in: query
+          required: false
+          type: string
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
           in: query
           required: false
           type: string
@@ -620,6 +928,20 @@ paths:
           in: path
           required: true
           type: string
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
       tags:
         - RepositoryService
     delete:
@@ -637,6 +959,93 @@ paths:
         - name: repositoryId
           in: path
           required: true
+          type: string
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+      tags:
+        - RepositoryService
+  /api/v1/repository/name/{name}:
+    get:
+      operationId: RepositoryService_GetRepositoryByName2
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1GetRepositoryByNameResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+        - name: provider
+          in: query
+          required: false
+          type: string
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+      tags:
+        - RepositoryService
+    delete:
+      operationId: RepositoryService_DeleteRepositoryByName2
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1DeleteRepositoryByNameResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+        - name: provider
+          in: query
+          required: false
+          type: string
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
           type: string
       tags:
         - RepositoryService
@@ -661,7 +1070,17 @@ paths:
           in: path
           required: true
           type: string
-        - name: projectId
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
           in: query
           required: false
           type: string
@@ -687,7 +1106,17 @@ paths:
           in: path
           required: true
           type: string
-        - name: projectId
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
           in: query
           required: false
           type: string
@@ -714,12 +1143,56 @@ paths:
           in: body
           required: true
           schema:
-            type: object
-            properties:
-              projectId:
-                type: string
-              repository:
-                $ref: '#/definitions/v1UpstreamRepositoryRef'
+            $ref: '#/definitions/RepositoryServiceRegisterRepositoryBody'
+      tags:
+        - RepositoryService
+  /api/v1/repository/register:
+    post:
+      operationId: RepositoryService_RegisterRepository2
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1RegisterRepositoryResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: provider
+          in: query
+          required: false
+          type: string
+        - name: repository.owner
+          in: query
+          required: false
+          type: string
+        - name: repository.name
+          in: query
+          required: false
+          type: string
+        - name: repository.repoId
+          description: |-
+            The upstream identity of the repository, as an integer.
+            This is only set on output, and is ignored on input.
+          in: query
+          required: false
+          type: string
+          format: int64
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
       tags:
         - RepositoryService
   /api/v1/rule_type:
@@ -782,14 +1255,16 @@ paths:
           required: true
           type: string
         - name: context.provider
-          in: query
-          required: false
-          type: string
-        - name: context.organization
+          description: name of the provider
           in: query
           required: false
           type: string
         - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
           in: query
           required: false
           type: string
@@ -814,14 +1289,16 @@ paths:
           required: true
           type: string
         - name: context.provider
-          in: query
-          required: false
-          type: string
-        - name: context.organization
+          description: name of the provider
           in: query
           required: false
           type: string
         - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
           in: query
           required: false
           type: string
@@ -845,14 +1322,16 @@ paths:
           required: true
           type: string
         - name: context.provider
-          in: query
-          required: false
-          type: string
-        - name: context.organization
+          description: name of the provider
           in: query
           required: false
           type: string
         - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
           in: query
           required: false
           type: string
@@ -872,14 +1351,16 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: context.provider
-          in: query
-          required: false
-          type: string
-        - name: context.organization
+          description: name of the provider
           in: query
           required: false
           type: string
         - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
           in: query
           required: false
           type: string
@@ -969,7 +1450,12 @@ definitions:
         description: vulncheck is only used if the `vulncheck` type is selected.
       trusty:
         $ref: '#/definitions/EvalTrusty'
-        description: trusty is only used if the `trusty` type is selected.
+        title: |-
+          The trusty type is no longer used, but is still here for backwards
+          compatibility with existing stored rules
+      homoglyphs:
+        $ref: '#/definitions/EvalHomoglyphs'
+        description: homoglyphs is only used if the `homoglyphs` type is selected.
     description: |-
       Eval defines the data evaluation definition.
       This pertains to the way we traverse data from the upstream
@@ -1020,6 +1506,11 @@ definitions:
       depfile:
         type: string
         title: depfile is the file that contains the dependencies for this ecosystem
+  EvalHomoglyphs:
+    type: object
+    properties:
+      type:
+        type: string
   EvalJQComparison:
     type: object
     properties:
@@ -1048,12 +1539,21 @@ definitions:
       def:
         type: string
         description: def is the definition of the rego profile.
+      violationFormat:
+        type: string
+        description: |-
+          how are violations reported. This is only used if the
+          `constraints` type is selected. The default is `text`
+          which returns human-readable text. The other option is
+          `json` which returns a JSON array containing the violations.
   EvalTrusty:
     type: object
     properties:
       endpoint:
         type: string
-        title: e.g. https://staging.stacklok.dev/
+        title: |-
+          This is no longer used, but is still here for backwards
+          compatibility with existing stored rules
   EvalVulncheck:
     type: object
     title: no configuration for now
@@ -1079,6 +1579,15 @@ definitions:
     properties:
       def:
         type: string
+  OAuthServiceStoreProviderTokenBody:
+    type: object
+    properties:
+      accessToken:
+        type: string
+      owner:
+        type: string
+      context:
+        $ref: '#/definitions/v1Context'
   ProfileRule:
     type: object
     properties:
@@ -1095,7 +1604,18 @@ definitions:
         description: |-
           def is the definition of the rule.
           This depends on the rule type.
+      name:
+        type: string
+        title: name is the descriptive name of the rule, not to be confused with type
     description: Rule defines the individual call of a certain rule type.
+  PullRequestRemediationActionsReplaceTagsWithSha:
+    type: object
+    properties:
+      exclude:
+        type: array
+        items:
+          type: string
+        title: List of actions to exclude from the replacement
   PullRequestRemediationContent:
     type: object
     properties:
@@ -1119,6 +1639,9 @@ definitions:
 
           040000 for submodules (which we don't use but now you know the meaning
           of the 1 in 100644)
+
+          see e.g.
+          https://github.com/go-git/go-git/blob/32e0172851c35ae2fac495069c923330040903d2/plumbing/filemode/filemode.go#L16
   RemediateGhBranchProtectionType:
     type: object
     properties:
@@ -1138,9 +1661,34 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/PullRequestRemediationContent'
+      method:
+        type: string
+        title: >-
+          the method to use to create the PR. For now, these are supported:
+
+          -- minder.content - ensures that the content of the file is exactly as
+          specified
+                              refer to the Content message for more details
+          -- minder.actions.replace_tags_with_sha - finds any github actions
+          within a workflow
+                                                    file and replaces the tag with the SHA
+      actionsReplaceTagsWithSha:
+        $ref: '#/definitions/PullRequestRemediationActionsReplaceTagsWithSha'
+        title: >-
+          If the method is minder.actions.replace_tags_with_sha, this is the
+          configuration
+
+          for that method
     title: >-
       the name stutters a bit but we already use a PullRequest message for
       handling PR entities
+  RepositoryServiceRegisterRepositoryBody:
+    type: object
+    properties:
+      repository:
+        $ref: '#/definitions/v1UpstreamRepositoryRef'
+      context:
+        $ref: '#/definitions/v1Context'
   RestTypeFallback:
     type: object
     properties:
@@ -1149,82 +1697,37 @@ definitions:
         format: int32
       body:
         type: string
-  apiHttpBody:
+  RuleTypeDefinition:
     type: object
     properties:
-      contentType:
+      inEntity:
         type: string
+        description: |-
+          in_entity is the entity in which the rule is evaluated.
+          This can be repository, build_environment or artifact.
+      ruleSchema:
+        type: object
         description: >-
-          The HTTP Content-Type header value specifying the content type of the
-          body.
-      data:
-        type: string
-        format: byte
-        description: The HTTP request/response body as raw binary.
-      extensions:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/protobufAny'
+          rule_schema is the schema of the rule. This is expressed in JSON
+          Schema.
+      paramSchema:
+        type: object
         description: >-
-          Application specific response metadata. Must be set in the first
-          response
+          param_schema is the schema of the parameters that are passed to the
+          rule.
 
-          for streaming APIs.
+          This is expressed in JSON Schema.
+      ingest:
+        $ref: '#/definitions/DefinitionIngest'
+      eval:
+        $ref: '#/definitions/DefinitionEval'
+      remediate:
+        $ref: '#/definitions/DefinitionRemediate'
+      alert:
+        $ref: '#/definitions/DefinitionAlert'
     description: >-
-      Message that represents an arbitrary HTTP body. It should only be used for
-
-      payload formats that can't be represented as JSON, such as raw binary or
-
-      an HTML page.
-
-
-
-      This message can be used both in streaming and non-streaming API methods
-      in
-
-      the request as well as the response.
-
-
-      It can be used as a top-level request field, which is convenient if one
-
-      wants to extract parameters from either the URL or HTTP template into the
-
-      request fields and also want access to the raw HTTP body.
-
-
-      Example:
-
-          message GetResourceRequest {
-            // A unique request id.
-            string request_id = 1;
-
-            // The raw HTTP body is bound to this field.
-            google.api.HttpBody http_body = 2;
-
-          }
-
-          service ResourceService {
-            rpc GetResource(GetResourceRequest)
-              returns (google.api.HttpBody);
-            rpc UpdateResource(google.api.HttpBody)
-              returns (google.protobuf.Empty);
-
-          }
-
-      Example with streaming methods:
-
-          service CaldavService {
-            rpc GetCalendar(stream google.api.HttpBody)
-              returns (stream google.api.HttpBody);
-            rpc UpdateCalendar(stream google.api.HttpBody)
-              returns (stream google.api.HttpBody);
-
-          }
-
-      Use of this type only changes how the request and response bodies are
-
-      handled, all other features will continue to work unchanged.
+      Definition defines the rule type. It encompases the schema and the data
+      evaluation.
   googlerpcStatus:
     type: object
     properties:
@@ -1238,175 +1741,12 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/protobufAny'
-  minderv1Context:
-    type: object
-    properties:
-      provider:
-        type: string
-      organization:
-        type: string
-      project:
-        type: string
-    description: >-
-      Context defines the context in which a rule is evaluated.
-
-      this normally refers to a combination of the provider, organization and
-      project.
   protobufAny:
     type: object
     properties:
       '@type':
         type: string
-        description: >-
-          A URL/resource name that uniquely identifies the type of the
-          serialized
-
-          protocol buffer message. This string must contain at least
-
-          one "/" character. The last segment of the URL's path must represent
-
-          the fully qualified name of the type (as in
-
-          `path/google.protobuf.Duration`). The name should be in a canonical
-          form
-
-          (e.g., leading "." is not accepted).
-
-
-          In practice, teams usually precompile into the binary all types that
-          they
-
-          expect it to use in the context of Any. However, for URLs which use
-          the
-
-          scheme `http`, `https`, or no scheme, one can optionally set up a type
-
-          server that maps type URLs to message definitions as follows:
-
-
-          * If no scheme is provided, `https` is assumed.
-
-          * An HTTP GET on the URL must yield a [google.protobuf.Type][]
-            value in binary format, or produce an error.
-          * Applications are allowed to cache lookup results based on the
-            URL, or have them precompiled into a binary to avoid any
-            lookup. Therefore, binary compatibility needs to be preserved
-            on changes to types. (Use versioned type names to manage
-            breaking changes.)
-
-          Note: this functionality is not currently available in the official
-
-          protobuf release, and it is not used for type URLs beginning with
-
-          type.googleapis.com.
-
-
-          Schemes other than `http`, `https` (or the empty scheme) might be
-
-          used with implementation specific semantics.
     additionalProperties: {}
-    description: >-
-      `Any` contains an arbitrary serialized protocol buffer message along with
-      a
-
-      URL that describes the type of the serialized message.
-
-
-      Protobuf library provides support to pack/unpack Any values in the form
-
-      of utility functions or additional generated methods of the Any type.
-
-
-      Example 1: Pack and unpack a message in C++.
-
-          Foo foo = ...;
-          Any any;
-          any.PackFrom(foo);
-          ...
-          if (any.UnpackTo(&foo)) {
-            ...
-          }
-
-      Example 2: Pack and unpack a message in Java.
-
-          Foo foo = ...;
-          Any any = Any.pack(foo);
-          ...
-          if (any.is(Foo.class)) {
-            foo = any.unpack(Foo.class);
-          }
-          // or ...
-          if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-            foo = any.unpack(Foo.getDefaultInstance());
-          }
-
-      Example 3: Pack and unpack a message in Python.
-
-          foo = Foo(...)
-          any = Any()
-          any.Pack(foo)
-          ...
-          if any.Is(Foo.DESCRIPTOR):
-            any.Unpack(foo)
-            ...
-
-      Example 4: Pack and unpack a message in Go
-
-           foo := &pb.Foo{...}
-           any, err := anypb.New(foo)
-           if err != nil {
-             ...
-           }
-           ...
-           foo := &pb.Foo{}
-           if err := any.UnmarshalTo(foo); err != nil {
-             ...
-           }
-
-      The pack methods provided by protobuf library will by default use
-
-      'type.googleapis.com/full.type.name' as the type URL and the unpack
-
-      methods only use the fully qualified type name after the last '/'
-
-      in the type URL, for example "foo.bar.com/x/y.z" will yield type
-
-      name "y.z".
-
-
-      JSON
-
-
-      The JSON representation of an `Any` value uses the regular
-
-      representation of the deserialized, embedded message, with an
-
-      additional field `@type` which contains the type URL. Example:
-
-          package google.profile;
-          message Person {
-            string first_name = 1;
-            string last_name = 2;
-          }
-
-          {
-            "@type": "type.googleapis.com/google.profile.Person",
-            "firstName": <string>,
-            "lastName": <string>
-          }
-
-      If the embedded message type is well-known and has a custom JSON
-
-      representation, that representation will be embedded adding a field
-
-      `value` which holds the custom JSON in addition to the `@type`
-
-      field. Example (for message [google.protobuf.Duration][]):
-
-          {
-            "@type": "type.googleapis.com/google.protobuf.Duration",
-            "value": "1.212s"
-          }
   protobufNullValue:
     type: string
     enum:
@@ -1416,7 +1756,7 @@ definitions:
       `NullValue` is a singleton enumeration to represent the null value for the
       `Value` type union.
 
-       The JSON representation for `NullValue` is JSON `null`.
+      The JSON representation for `NullValue` is JSON `null`.
 
        - NULL_VALUE: Null value.
   v1Artifact:
@@ -1457,21 +1797,24 @@ definitions:
           type: string
       sha:
         type: string
-      signatureVerification:
-        $ref: '#/definitions/v1SignatureVerification'
-      githubWorkflow:
-        $ref: '#/definitions/v1GithubWorkflow'
       createdAt:
         type: string
         format: date-time
-  v1BranchProtection:
+  v1AssignRoleRequest:
     type: object
     properties:
-      branch:
-        type: string
-      isProtected:
-        type: boolean
-        title: Add other relevant fields
+      context:
+        $ref: '#/definitions/v1Context'
+        description: context is the context in which the role assignment is evaluated.
+      roleAssignment:
+        $ref: '#/definitions/v1RoleAssignment'
+        description: role_assignment is the role assignment to be created.
+  v1AssignRoleResponse:
+    type: object
+    properties:
+      roleAssignment:
+        $ref: '#/definitions/v1RoleAssignment'
+        description: role_assignment is the role assignment that was created.
   v1BuiltinType:
     type: object
     properties:
@@ -1483,20 +1826,27 @@ definitions:
     properties:
       status:
         type: string
-  v1CreateKeyPairRequest:
+  v1Context:
     type: object
     properties:
-      passphrase:
+      provider:
         type: string
-      projectId:
+        title: name of the provider
+      project:
         type: string
-  v1CreateKeyPairResponse:
-    type: object
-    properties:
-      keyIdentifier:
+        title: ID of the project
+      retiredOrganization:
         type: string
-      publicKey:
-        type: string
+    description: >-
+      Context defines the context in which a rule is evaluated.
+
+      this normally refers to a combination of the provider, organization and
+      project.
+
+
+      Removing the 'optional' keyword from the following two fields below will
+      break
+       buf compatibility checks.
   v1CreateProfileRequest:
     type: object
     properties:
@@ -1544,6 +1894,8 @@ definitions:
       createdAt:
         type: string
         format: date-time
+      context:
+        $ref: '#/definitions/v1Context'
   v1DeleteProfileResponse:
     type: object
   v1DeleteRepositoryByIdResponse:
@@ -1569,6 +1921,15 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/DiffTypeEcosystem'
+        description: |-
+          ecosystems is the list of ecosystems to be used
+          for the "dep" diff type.
+      type:
+        type: string
+        description: |-
+          type is the type of diff ingestor to use.
+          The default is "dep" which will leverage
+          the ecosystems array.
     description: DiffType defines the diff data ingester.
   v1Entity:
     type: string
@@ -1580,19 +1941,17 @@ definitions:
       - ENTITY_PULL_REQUESTS
     default: ENTITY_UNSPECIFIED
     description: Entity defines the entity that is supported by the provider.
-  v1ExchangeCodeForTokenWEBResponse:
+  v1GetArtifactByIdResponse:
     type: object
     properties:
-      accessToken:
-        type: string
-      tokenType:
-        type: string
-      expiresIn:
-        type: string
-        format: int64
-      status:
-        type: string
-  v1GetArtifactByIdResponse:
+      artifact:
+        $ref: '#/definitions/v1Artifact'
+      versions:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1ArtifactVersion'
+  v1GetArtifactByNameResponse:
     type: object
     properties:
       artifact:
@@ -1607,14 +1966,6 @@ definitions:
     properties:
       url:
         type: string
-  v1GetBranchProtectionResponse:
-    type: object
-    properties:
-      branchProtections:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1BranchProtection'
   v1GetProfileByIdResponse:
     type: object
     properties:
@@ -1641,11 +1992,6 @@ definitions:
           type: object
           $ref: '#/definitions/v1ProfileStatus'
         title: profile_status is the status of the profile
-  v1GetPublicKeyResponse:
-    type: object
-    properties:
-      publicKey:
-        type: string
   v1GetRepositoryByIdResponse:
     type: object
     properties:
@@ -1690,17 +2036,6 @@ definitions:
         type: string
         description: branch is the branch of the git repository.
     description: GitType defines the git data ingester.
-  v1GithubWorkflow:
-    type: object
-    properties:
-      name:
-        type: string
-      repository:
-        type: string
-      commitSha:
-        type: string
-      trigger:
-        type: string
   v1ListArtifactsResponse:
     type: object
     properties:
@@ -1717,6 +2052,19 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1Profile'
+  v1ListProvidersResponse:
+    type: object
+    properties:
+      providers:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1Provider'
+      cursor:
+        type: string
+        title: >-
+          cursor is the cursor to use for the next page of results, empty if at
+          the end
   v1ListRemoteRepositoriesFromProviderResponse:
     type: object
     properties:
@@ -1733,6 +2081,27 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1Repository'
+      cursor:
+        type: string
+        title: >-
+          cursor is the cursor to use for the next page of results, empty if at
+          the end
+  v1ListRoleAssignmentsResponse:
+    type: object
+    properties:
+      roleAssignments:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1RoleAssignment'
+  v1ListRolesResponse:
+    type: object
+    properties:
+      roles:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1Role'
   v1ListRuleTypesResponse:
     type: object
     properties:
@@ -1747,7 +2116,7 @@ definitions:
     type: object
     properties:
       context:
-        $ref: '#/definitions/minderv1Context'
+        $ref: '#/definitions/v1Context'
         description: context is the context in which the profile is evaluated.
       id:
         type: string
@@ -1788,6 +2157,14 @@ definitions:
         title: |-
           whether and how to alert (on,off,dry_run)
           this is optional as the default is set by the system
+      type:
+        type: string
+        description: >-
+          type is a placeholder for the object type. It should always be set to
+          "profile".
+      version:
+        type: string
+        title: version is the version of the profile type. In this case, it is "v1"
     description: Profile defines a profile that is user defined.
   v1ProfileStatus:
     type: object
@@ -1815,8 +2192,6 @@ definitions:
         type: string
       description:
         type: string
-      isProtected:
-        type: boolean
       createdAt:
         type: string
         format: date-time
@@ -1824,6 +2199,37 @@ definitions:
         type: string
         format: date-time
     title: Project API Objects
+  v1Provider:
+    type: object
+    properties:
+      name:
+        type: string
+        description: name is the name of the provider.
+      project:
+        type: string
+        description: project is the project where the provider is.
+      version:
+        type: string
+        description: version is the version of the provider.
+      implements:
+        type: array
+        items:
+          $ref: '#/definitions/v1ProviderType'
+        description: implements is the list of interfaces that the provider implements.
+      config:
+        type: object
+        description: config is the configuration of the provider.
+  v1ProviderType:
+    type: string
+    enum:
+      - PROVIDER_TYPE_UNSPECIFIED
+      - PROVIDER_TYPE_GITHUB
+      - PROVIDER_TYPE_REST
+      - PROVIDER_TYPE_GIT
+      - PROVIDER_TYPE_OCI
+      - PROVIDER_TYPE_REPO_LISTER
+    default: PROVIDER_TYPE_UNSPECIFIED
+    description: ProviderType is the type of the provider.
   v1RegisterRepoResult:
     type: object
     properties:
@@ -1843,6 +2249,12 @@ definitions:
     properties:
       result:
         $ref: '#/definitions/v1RegisterRepoResult'
+  v1RemoveRoleResponse:
+    type: object
+    properties:
+      roleAssignment:
+        $ref: '#/definitions/v1RoleAssignment'
+        description: role_assignment is the role assignment that was removed.
   v1Repository:
     type: object
     properties:
@@ -1850,14 +2262,14 @@ definitions:
         type: string
         title: This is optional when returning remote repositories
       context:
-        $ref: '#/definitions/minderv1Context'
+        $ref: '#/definitions/v1Context'
       owner:
         type: string
       name:
         type: string
       repoId:
-        type: integer
-        format: int32
+        type: string
+        format: int64
       hookId:
         type: string
         format: int64
@@ -1885,6 +2297,8 @@ definitions:
       updatedAt:
         type: string
         format: date-time
+      defaultBranch:
+        type: string
   v1RestType:
     type: object
     properties:
@@ -1921,16 +2335,27 @@ definitions:
     description: |-
       RestType defines the rest data evaluation.
       This is used to fetch data from a REST endpoint.
-  v1RevokeOauthProjectTokenResponse:
-    type: object
-  v1RevokeOauthTokensRequest:
-    type: object
-  v1RevokeOauthTokensResponse:
+  v1Role:
     type: object
     properties:
-      revokedTokens:
-        type: integer
-        format: int32
+      name:
+        type: string
+        description: name is the name of the role.
+      description:
+        type: string
+        description: description is the description of the role.
+  v1RoleAssignment:
+    type: object
+    properties:
+      role:
+        type: string
+        description: role is the role that is assigned.
+      subject:
+        type: string
+        description: subject is the subject to which the role is assigned.
+      project:
+        type: string
+        description: projectt is the projectt in which the role is assigned.
   v1RuleEvaluationStatus:
     type: object
     properties:
@@ -1942,7 +2367,9 @@ definitions:
         title: rule_id is the id of the rule
       ruleName:
         type: string
-        title: rule_name is the name of the rule
+        title: >-
+          rule_name is the type of the rule. Deprecated in favor of
+          rule_type_name
       entity:
         type: string
         title: entity is the entity that was evaluated
@@ -1978,6 +2405,12 @@ definitions:
         title: >-
           remediation_details is the description of the remediation attempt if
           any
+      ruleTypeName:
+        type: string
+        title: rule_type_name is the name of the rule
+      ruleDescriptionName:
+        type: string
+        title: rule_description_name is the name to describe the rule
     title: get the status of the rules for a given profile
   v1RuleType:
     type: object
@@ -1991,10 +2424,10 @@ definitions:
         type: string
         description: name is the name of the rule type.
       context:
-        $ref: '#/definitions/minderv1Context'
+        $ref: '#/definitions/v1Context'
         description: context is the context in which the rule is evaluated.
       def:
-        $ref: '#/definitions/v1RuleTypeDefinition'
+        $ref: '#/definitions/RuleTypeDefinition'
         description: def is the definition of the rule type.
       description:
         type: string
@@ -2002,63 +2435,57 @@ definitions:
       guidance:
         type: string
         description: guidance are instructions we give the user in case a rule fails.
+      severity:
+        $ref: '#/definitions/v1Severity'
+        description: severity is the severity of the rule type.
     description: |-
       RuleType defines rules that may or may not be user defined.
       The version is assumed from the folder's version.
-  v1RuleTypeDefinition:
+  v1Severity:
     type: object
     properties:
-      inEntity:
-        type: string
-        description: |-
-          in_entity is the entity in which the rule is evaluated.
-          This can be repository, build_environment or artifact.
-      ruleSchema:
-        type: object
-        description: >-
-          rule_schema is the schema of the rule. This is expressed in JSON
-          Schema.
-      paramSchema:
-        type: object
-        description: >-
-          param_schema is the schema of the parameters that are passed to the
-          rule.
+      value:
+        $ref: '#/definitions/v1SeverityValue'
+        description: value is the severity value.
+    description: Severity defines the severity of the rule.
+  v1SeverityValue:
+    type: string
+    enum:
+      - VALUE_UNSPECIFIED
+      - VALUE_UNKNOWN
+      - VALUE_INFO
+      - VALUE_LOW
+      - VALUE_MEDIUM
+      - VALUE_HIGH
+      - VALUE_CRITICAL
+    default: VALUE_UNSPECIFIED
+    description: |-
+      Value enumerates the severity values.
 
-          This is expressed in JSON Schema.
-      ingest:
-        $ref: '#/definitions/DefinitionIngest'
-      eval:
-        $ref: '#/definitions/DefinitionEval'
-      remediate:
-        $ref: '#/definitions/DefinitionRemediate'
-      alert:
-        $ref: '#/definitions/DefinitionAlert'
-    description: >-
-      Definition defines the rule type. It encompases the schema and the data
-      evaluation.
-  v1SignatureVerification:
-    type: object
-    properties:
-      isSigned:
-        type: boolean
-      isVerified:
-        type: boolean
-      isBundleVerified:
-        type: boolean
-      certIdentity:
-        type: string
-      certIssuer:
-        type: string
-      rekorLogId:
-        type: string
-      rekorLogIndex:
-        type: integer
-        format: int32
-      signatureTime:
-        type: string
-        format: date-time
+       - VALUE_UNKNOWN: unknown severity means that the severity is unknown or hasn't
+      been set.
+       - VALUE_INFO: info severity means that the severity is informational and
+      does not incur risk.
+       - VALUE_LOW: low severity means that the severity is low and does not
+      incur significant risk.
+       - VALUE_MEDIUM: medium severity means that the severity is medium and may
+      incur some risk.
+       - VALUE_HIGH: high severity means that the severity is high and may incur
+      significant risk.
+       - VALUE_CRITICAL: critical severity means that the severity is critical and
+      requires immediate attention.
   v1StoreProviderTokenResponse:
     type: object
+  v1UpdateProfileRequest:
+    type: object
+    properties:
+      profile:
+        $ref: '#/definitions/v1Profile'
+  v1UpdateProfileResponse:
+    type: object
+    properties:
+      profile:
+        $ref: '#/definitions/v1Profile'
   v1UpdateRuleTypeRequest:
     type: object
     properties:
@@ -2081,8 +2508,11 @@ definitions:
       name:
         type: string
       repoId:
-        type: integer
-        format: int32
+        type: string
+        format: int64
+        description: |-
+          The upstream identity of the repository, as an integer.
+          This is only set on output, and is ignored on input.
   v1UserRecord:
     type: object
     properties:
