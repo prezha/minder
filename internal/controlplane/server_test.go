@@ -39,8 +39,8 @@ import (
 	"github.com/stacklok/minder/internal/crypto"
 	"github.com/stacklok/minder/internal/events"
 	"github.com/stacklok/minder/internal/providers"
+	ghclient "github.com/stacklok/minder/internal/providers/github/clients"
 	ghService "github.com/stacklok/minder/internal/providers/github/service"
-	"github.com/stacklok/minder/internal/providers/ratecache"
 	pb "github.com/stacklok/minder/pkg/api/protobuf/go/minder/v1"
 )
 
@@ -73,7 +73,7 @@ func init() {
 func newDefaultServer(
 	t *testing.T,
 	mockStore *mockdb.MockStore,
-	restClientCache ratecache.RestClientCache,
+	ghClientFactory ghclient.GitHubClientFactory,
 ) (*Server, events.Interface) {
 	t.Helper()
 
@@ -97,7 +97,7 @@ func newDefaultServer(
 	// Needed to keep these tests working as-is.
 	// In future, beef up unit test coverage in the dependencies
 	// of this code, and refactor these tests to use stubs.
-	eng, err := crypto.EngineFromAuthConfig(&c.Auth)
+	eng, err := crypto.NewEngineFromAuthConfig(&c.Auth)
 	require.NoError(t, err)
 	ghClientService := ghService.NewGithubProviderService(
 		mockStore,
@@ -106,9 +106,7 @@ func newDefaultServer(
 		// These nil dependencies do not matter for the current tests
 		nil,
 		nil,
-		nil,
-		restClientCache,
-		nil,
+		ghClientFactory,
 	)
 
 	server := &Server{

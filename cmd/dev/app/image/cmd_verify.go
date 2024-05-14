@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package container provides the root command for the container subcommands
-package container
+package image
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -26,14 +23,15 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	serverconfig "github.com/stacklok/minder/internal/config/server"
-	"github.com/stacklok/minder/internal/db"
-	"github.com/stacklok/minder/internal/providers"
 	"github.com/stacklok/minder/internal/providers/credentials"
+	"github.com/stacklok/minder/internal/providers/github/clients"
+	"github.com/stacklok/minder/internal/providers/ratecache"
+	"github.com/stacklok/minder/internal/providers/telemetry"
 	"github.com/stacklok/minder/internal/verifier"
 	"github.com/stacklok/minder/internal/verifier/sigstore"
 	"github.com/stacklok/minder/internal/verifier/sigstore/container"
 	"github.com/stacklok/minder/internal/verifier/verifyif"
+	minderv1 "github.com/stacklok/minder/pkg/api/protobuf/go/minder/v1"
 	provifv1 "github.com/stacklok/minder/pkg/providers/v1"
 )
 
@@ -49,7 +47,9 @@ func CmdVerify() *cobra.Command {
 	verifyCmd.Flags().StringP("owner", "o", "", "owner of the artifact")
 	verifyCmd.Flags().StringP("name", "n", "", "name of the artifact")
 	verifyCmd.Flags().StringP("digest", "s", "", "digest of the artifact")
+	//nolint:goconst // let's not use a const for this one
 	verifyCmd.Flags().StringP("token", "t", "", "token to authenticate to the provider."+
+		//nolint:goconst // let's not use a const for this one
 		"Can also be set via the AUTH_TOKEN environment variable.")
 	verifyCmd.Flags().StringP("tuf-root", "r", sigstore.SigstorePublicTrustedRootRepo, "TUF root to use for verification")
 
@@ -99,7 +99,7 @@ func runCmdVerify(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("error getting sigstore verifier: %w", err)
 	}
 
-	res, err := artifactVerifier.Verify(context.Background(), verifyif.ArtifactTypeContainer, "",
+	res, err := artifactVerifier.Verify(context.Background(), verifyif.ArtifactTypeContainer,
 		owner.Value.String(), name.Value.String(), digest.Value.String())
 	if err != nil {
 		return fmt.Errorf("error verifying container: %w", err)
@@ -110,26 +110,11 @@ func runCmdVerify(cmd *cobra.Command, _ []string) error {
 }
 
 func buildGitHubClient(token string) (provifv1.GitHub, error) {
-	pbuild := providers.NewProviderBuilder(
-		&db.Provider{
-			Name:    "test",
-			Version: "v1",
-			Implements: []db.ProviderType{
-				"rest",
-				"git",
-				"github",
-			},
-			Definition: json.RawMessage(`{
-				"rest": {},
-				"github": {}
-			}`),
-		},
-		sql.NullString{},
-		false,
+	return clients.NewRestClient(
+		&minderv1.GitHubProviderConfig{},
+		&ratecache.NoopRestClientCache{},
 		credentials.NewGitHubTokenCredential(token),
-		&serverconfig.ProviderConfig{},
-		nil, // this is unused here
+		clients.NewGitHubClientFactory(telemetry.NewNoopMetrics()),
+		"",
 	)
-
-	return pbuild.GetGitHub()
 }

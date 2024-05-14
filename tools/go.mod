@@ -9,18 +9,18 @@ require (
 	github.com/daixiang0/gci v0.13.4
 	github.com/deepmap/oapi-codegen/v2 v2.1.0
 	github.com/go-critic/go-critic v0.11.3
-	github.com/golangci/golangci-lint v1.58.0
+	github.com/golangci/golangci-lint v1.58.1
 	github.com/gotesttools/gotestfmt/v2 v2.5.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1
-	github.com/mikefarah/yq/v4 v4.43.1
+	github.com/mikefarah/yq/v4 v4.44.1
 	github.com/norwoodj/helm-docs v1.13.1
-	github.com/openfga/cli v0.3.1
+	github.com/openfga/cli v0.4.0
 	github.com/pseudomuto/protoc-gen-doc v1.5.1
 	github.com/sqlc-dev/sqlc v1.26.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
-	golang.org/x/tools v0.20.0
+	golang.org/x/tools v0.21.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
-	google.golang.org/protobuf v1.34.0
+	google.golang.org/protobuf v1.34.1
 	mvdan.cc/gofumpt v0.6.0
 )
 
@@ -31,7 +31,7 @@ require (
 	connectrpc.com/connect v1.16.1 // indirect
 	connectrpc.com/otelconnect v0.7.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/4meepo/tagalign v1.3.3 // indirect
+	github.com/4meepo/tagalign v1.3.4 // indirect
 	github.com/Abirdcfly/dupword v0.0.14 // indirect
 	github.com/Antonboom/errname v0.1.13 // indirect
 	github.com/Antonboom/nilnil v0.1.8 // indirect
@@ -104,7 +104,7 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/getkin/kin-openapi v0.122.0 // indirect
-	github.com/ghostiam/protogetter v0.3.5 // indirect
+	github.com/ghostiam/protogetter v0.3.6 // indirect
 	github.com/go-chi/chi/v5 v5.0.12 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -220,10 +220,10 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
-	github.com/openfga/api/proto v0.0.0-20240425220334-619029c1d3d3 // indirect
-	github.com/openfga/go-sdk v0.3.6-0.20240415101814-23d3da979203 // indirect
+	github.com/openfga/api/proto v0.0.0-20240430203311-36050418a284 // indirect
+	github.com/openfga/go-sdk v0.3.6 // indirect
 	github.com/openfga/language/pkg/go v0.0.0-20240429103126-f3e71ca3287d // indirect
-	github.com/openfga/openfga v1.5.3 // indirect
+	github.com/openfga/openfga v1.5.4-rc1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pganalyze/pg_query_go/v5 v5.1.0 // indirect
@@ -312,15 +312,15 @@ require (
 	go.uber.org/mock v0.4.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.22.0 // indirect
+	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f // indirect
 	golang.org/x/exp/typeparams v0.0.0-20240314144324-c7f7c6466f7f // indirect
 	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/net v0.24.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
-	golang.org/x/term v0.19.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/term v0.20.0 // indirect
+	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect

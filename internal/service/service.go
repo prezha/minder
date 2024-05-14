@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ThreeDotsLabs/watermill/message"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/stacklok/minder/internal/auth"
@@ -37,6 +38,7 @@ import (
 	"github.com/stacklok/minder/internal/profiles"
 	"github.com/stacklok/minder/internal/projects"
 	"github.com/stacklok/minder/internal/providers"
+	"github.com/stacklok/minder/internal/providers/dockerhub"
 	ghprov "github.com/stacklok/minder/internal/providers/github"
 	"github.com/stacklok/minder/internal/providers/github/clients"
 	"github.com/stacklok/minder/internal/providers/github/installations"
@@ -63,7 +65,7 @@ func AllInOneServerService(
 	idClient auth.Resolver,
 	serverMetrics metrics.Metrics,
 	providerMetrics provtelemetry.ProviderMetrics,
-	executorOpts []engine.ExecutorOption,
+	executorMiddleware []message.HandlerMiddleware,
 ) error {
 	errg, ctx := errgroup.WithContext(ctx)
 
@@ -73,7 +75,7 @@ func AllInOneServerService(
 	}
 
 	flags.OpenFeatureProviderFromFlags(ctx, cfg.Flags)
-	cryptoEngine, err := crypto.EngineFromAuthConfig(&cfg.Auth)
+	cryptoEngine, err := crypto.NewEngineFromAuthConfig(&cfg.Auth)
 	if err != nil {
 		return fmt.Errorf("failed to create crypto engine: %w", err)
 	}
@@ -97,11 +99,9 @@ func AllInOneServerService(
 		store,
 		cryptoEngine,
 		serverMetrics,
-		providerMetrics,
 		&cfg.Provider,
 		makeProjectFactory(projectCreator, cfg.Identity),
-		restClientCache,
-		fallbackTokenClient,
+		ghClientFactory,
 	)
 	githubProviderManager := ghmanager.NewGitHubProviderClassManager(
 		restClientCache,
@@ -113,7 +113,11 @@ func AllInOneServerService(
 		store,
 		ghProviders,
 	)
-	providerManager, err := manager.NewProviderManager(providerStore, githubProviderManager)
+	dockerhubProviderManager := dockerhub.NewDockerHubProviderClassManager(
+		cryptoEngine,
+		store,
+	)
+	providerManager, err := manager.NewProviderManager(providerStore, githubProviderManager, dockerhubProviderManager)
 	if err != nil {
 		return fmt.Errorf("failed to create provider manager: %w", err)
 	}
@@ -151,13 +155,15 @@ func AllInOneServerService(
 	evt.ConsumeEvents(aggr)
 
 	// prepend the aggregator to the executor options
-	executorOpts = append([]engine.ExecutorOption{engine.WithMiddleware(aggr.AggregateMiddleware)},
-		executorOpts...)
+	executorMiddleware = append([]message.HandlerMiddleware{aggr.AggregateMiddleware}, executorMiddleware...)
 
-	exec, err := engine.NewExecutor(ctx, store, &cfg.Auth, &cfg.Provider, evt, providerStore, restClientCache, executorOpts...)
-	if err != nil {
-		return fmt.Errorf("unable to create executor: %w", err)
-	}
+	exec := engine.NewExecutor(
+		ctx,
+		store,
+		evt,
+		providerManager,
+		executorMiddleware,
+	)
 
 	evt.ConsumeEvents(exec)
 
