@@ -13,6 +13,7 @@ tags:
   - name: PermissionsService
   - name: ProjectsService
   - name: ProvidersService
+  - name: InviteService
 consumes:
   - application/json
 produces:
@@ -351,6 +352,36 @@ paths:
             $ref: '#/definitions/v1CheckHealthResponse'
       tags:
         - HealthService
+  /api/v1/invite/{code}:
+    get:
+      operationId: InviteService_GetInviteDetails
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1GetInviteDetailsResponse'
+      parameters:
+        - name: code
+          description: Invite nonce/code to retrieve details for
+          in: path
+          required: true
+          type: string
+        - name: context.provider
+          description: name of the provider
+          in: query
+          required: false
+          type: string
+        - name: context.project
+          description: ID of the project
+          in: query
+          required: false
+          type: string
+        - name: context.retiredOrganization
+          in: query
+          required: false
+          type: string
+      tags:
+        - InviteService
   /api/v1/my/providers:
     get:
       summary: |-
@@ -860,6 +891,22 @@ paths:
             $ref: '#/definitions/v1CreateEntityReconciliationTaskRequest'
       tags:
         - ProjectsService
+  /api/v1/provider/register_all:
+    post:
+      operationId: ProvidersService_ReconcileEntityRegistration
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ReconcileEntityRegistrationResponse'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1ReconcileEntityRegistrationRequest'
+      tags:
+        - ProvidersService
   /api/v1/provider_classes:
     get:
       operationId: ProvidersService_ListProviderClasses
@@ -2341,6 +2388,22 @@ definitions:
         type: string
       state:
         type: string
+  v1GetInviteDetailsResponse:
+    type: object
+    properties:
+      projectDisplay:
+        type: string
+        title: Project associated with the invite
+      sponsorDisplay:
+        type: string
+        title: Sponsor of the invite
+      expiresAt:
+        type: string
+        format: date-time
+        description: expires_at is the time at which the invitation expires.
+      expired:
+        type: boolean
+        title: expired is true if the invitation has expired
   v1GetProfileByIdResponse:
     type: object
     properties:
@@ -2834,6 +2897,15 @@ definitions:
       - PROVIDER_TYPE_IMAGE_LISTER
     default: PROVIDER_TYPE_UNSPECIFIED
     description: ProviderTrait is the type of the provider.
+  v1ReconcileEntityRegistrationRequest:
+    type: object
+    properties:
+      context:
+        $ref: '#/definitions/v1Context'
+      entity:
+        type: string
+  v1ReconcileEntityRegistrationResponse:
+    type: object
   v1RegisterRepoResult:
     type: object
     properties:
@@ -2968,6 +3040,9 @@ definitions:
       name:
         type: string
         description: name is the name of the role.
+      displayName:
+        type: string
+        title: display name of the role
       description:
         type: string
         description: description is the description of the role.
