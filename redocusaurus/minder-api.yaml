@@ -585,6 +585,16 @@ paths:
           in: query
           required: false
           type: string
+        - name: roleAssignment.firstName
+          description: first_name is the first name of the subject.
+          in: query
+          required: false
+          type: string
+        - name: roleAssignment.lastName
+          description: last_name is the last name of the subject.
+          in: query
+          required: false
+          type: string
       tags:
         - PermissionsService
   /api/v1/permissions/roles:
@@ -2608,6 +2618,10 @@ definitions:
       remediation:
         $ref: '#/definitions/v1EvaluationHistoryRemediation'
         description: remediation contains details of the remediation for this evaluation.
+      evaluatedAt:
+        type: string
+        format: date-time
+        title: created_at is the timestamp of creation of this evaluation
   v1EvaluationHistoryAlert:
     type: object
     properties:
@@ -2628,7 +2642,7 @@ definitions:
     properties:
       id:
         type: string
-        description: id is the ID of the entity.
+        description: id is the unique identifier of the entity.
       type:
         $ref: '#/definitions/v1Entity'
         description: type is the entity type.
@@ -2656,7 +2670,7 @@ definitions:
       name:
         type: string
         description: name is the name of the rule instance.
-      type:
+      ruleType:
         type: string
         description: type is the name of the rule type.
       profile:
@@ -2899,6 +2913,9 @@ definitions:
       inviteUrl:
         type: string
         description: inviteURL is the URL that can be used to accept the invitation.
+      emailSkipped:
+        type: boolean
+        description: emailSkipped is true if the email was not sent to the invitee.
   v1ListArtifactsResponse:
     type: object
     properties:
@@ -3456,6 +3473,12 @@ definitions:
       email:
         type: string
         description: email is the email address of the subject used for invitations.
+      firstName:
+        type: string
+        description: first_name is the first name of the subject.
+      lastName:
+        type: string
+        description: last_name is the last name of the subject.
   v1RuleEvaluationStatus:
     type: object
     properties:
