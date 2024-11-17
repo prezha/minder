@@ -9,6 +9,7 @@ tags:
   - name: RepositoryService
   - name: UserService
   - name: ProfileService
+  - name: DataSourceService
   - name: RuleTypeService
   - name: EvalResultsService
   - name: PermissionsService
@@ -370,6 +371,119 @@ paths:
             $ref: '#/definitions/OAuthServiceStoreProviderTokenBody'
       tags:
         - OAuthService
+  /api/v1/data_source:
+    post:
+      operationId: DataSourceService_CreateDataSource
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1CreateDataSourceResponse'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1CreateDataSourceRequest'
+      tags:
+        - DataSourceService
+    put:
+      operationId: DataSourceService_UpdateDataSource
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1UpdateDataSourceResponse'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1UpdateDataSourceRequest'
+      tags:
+        - DataSourceService
+  /api/v1/data_source/{id}:
+    get:
+      operationId: DataSourceService_GetDataSourceById
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1GetDataSourceByIdResponse'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: context.projectId
+          description: >-
+            project is the project ID.  If empty or unset, will select the
+            user's default project
+
+            if they only have one project.
+          in: query
+          required: false
+          type: string
+        - name: context.provider
+          description: name of the provider. Set to empty string when not applicable.
+          in: query
+          required: false
+          type: string
+      tags:
+        - DataSourceService
+    delete:
+      operationId: DataSourceService_DeleteDataSource
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1DeleteDataSourceResponse'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: context.projectId
+          description: >-
+            project is the project ID.  If empty or unset, will select the
+            user's default project
+
+            if they only have one project.
+          in: query
+          required: false
+          type: string
+        - name: context.provider
+          description: name of the provider. Set to empty string when not applicable.
+          in: query
+          required: false
+          type: string
+      tags:
+        - DataSourceService
+  /api/v1/data_sources:
+    get:
+      operationId: DataSourceService_ListDataSources
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListDataSourcesResponse'
+      parameters:
+        - name: context.projectId
+          description: >-
+            project is the project ID.  If empty or unset, will select the
+            user's default project
+
+            if they only have one project.
+          in: query
+          required: false
+          type: string
+        - name: context.provider
+          description: name of the provider. Set to empty string when not applicable.
+          in: query
+          required: false
+          type: string
+      tags:
+        - DataSourceService
   /api/v1/health:
     get:
       operationId: HealthService_CheckHealth
@@ -467,6 +581,25 @@ paths:
           required: false
           type: string
           format: date-time
+        - name: labelFilter
+          description: >-
+            Filter evaluation history to only those matching the specified
+            labels.
+
+
+            The default is to return all user-created profiles; the string "*"
+            can
+
+            be used to select all profiles, including system profiles.  This
+            syntax
+
+            may be expanded in the future.
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
         - name: cursor.cursor
           description: |-
             cursor is the index to start from within the collection being
@@ -2433,15 +2566,6 @@ definitions:
           entity is the entity to register. This is the same as the repository
           field, but uses the new UpstreamEntityRef message. This is what we'll
           migrate to eventually.
-  RestTypeFallback:
-    type: object
-    properties:
-      httpCode:
-        type: integer
-        format: int32
-      body:
-        type: string
-        description: This is expected to be a valid JSON string.
   RuleTypeDefinition:
     type: object
     properties:
@@ -2614,6 +2738,15 @@ definitions:
         type: string
         description: name of the provider. Set to empty string when not applicable.
     description: ContextV2 defines the context in which a rule is evaluated.
+  v1CreateDataSourceRequest:
+    type: object
+    properties:
+      context:
+        $ref: '#/definitions/v1ContextV2'
+    title: DataSource service
+  v1CreateDataSourceResponse:
+    type: object
+    title: TODO
   v1CreateEntityReconciliationTaskRequest:
     type: object
     properties:
@@ -2752,6 +2885,9 @@ definitions:
       CursorPage message used in response messages. Its purpose is to
       send to clients links pointing to next and/or previous collection
       subsets with respect to the one containing this struct.
+  v1DeleteDataSourceResponse:
+    type: object
+    title: TODO
   v1DeleteProfileResponse:
     type: object
   v1DeleteProjectResponse:
@@ -2976,6 +3112,9 @@ definitions:
         type: string
       state:
         type: string
+  v1GetDataSourceByIdResponse:
+    type: object
+    title: TODO
   v1GetEvaluationHistoryResponse:
     type: object
     properties:
@@ -3188,6 +3327,9 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1Project'
+  v1ListDataSourcesResponse:
+    type: object
+    title: TODO
   v1ListEvaluationHistoryResponse:
     type: object
     properties:
@@ -3745,13 +3887,22 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/RestTypeFallback'
+          $ref: '#/definitions/v1RestTypeFallback'
         description: |-
           fallback provides a body that the ingester would return in case
           the REST call returns a non-200 status code.
     description: |-
       RestType defines the rest data evaluation.
       This is used to fetch data from a REST endpoint.
+  v1RestTypeFallback:
+    type: object
+    properties:
+      httpCode:
+        type: integer
+        format: int32
+      body:
+        type: string
+        description: This is expected to be a valid JSON string.
   v1Role:
     type: object
     properties:
@@ -3974,6 +4125,16 @@ definitions:
         $ref: '#/definitions/v1Context'
   v1StoreProviderTokenResponse:
     type: object
+  v1UpdateDataSourceRequest:
+    type: object
+    properties:
+      context:
+        $ref: '#/definitions/v1ContextV2'
+      id:
+        type: string
+  v1UpdateDataSourceResponse:
+    type: object
+    title: TODO
   v1UpdateProfileRequest:
     type: object
     properties:
