@@ -120,6 +120,10 @@ paths:
           required: false
           type: string
         - name: from
+          description: |-
+            from is the filter to apply to the list of artifacts.
+            An example is "repository=org1/repo1,org2/repo2"
+            to filter by repository names. This is optional.
           in: query
           required: false
           type: string
@@ -157,6 +161,10 @@ paths:
           required: false
           type: string
         - name: from
+          description: |-
+            from is the filter to apply to the list of artifacts.
+            An example is "repository=org1/repo1,org2/repo2"
+            to filter by repository names. This is optional.
           in: query
           required: false
           type: string
@@ -402,6 +410,65 @@ paths:
             $ref: '#/definitions/v1UpdateDataSourceRequest'
       tags:
         - DataSourceService
+  /api/v1/data_source/name/{name}:
+    get:
+      operationId: DataSourceService_GetDataSourceByName
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1GetDataSourceByNameResponse'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+          pattern: .+
+        - name: context.projectId
+          description: >-
+            project is the project ID.  If empty or unset, will select the
+            user's default project
+
+            if they only have one project.
+          in: query
+          required: false
+          type: string
+        - name: context.provider
+          description: name of the provider. Set to empty string when not applicable.
+          in: query
+          required: false
+          type: string
+      tags:
+        - DataSourceService
+    delete:
+      operationId: DataSourceService_DeleteDataSourceByName
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1DeleteDataSourceByNameResponse'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+          pattern: .+
+        - name: context.projectId
+          description: >-
+            project is the project ID.  If empty or unset, will select the
+            user's default project
+
+            if they only have one project.
+          in: query
+          required: false
+          type: string
+        - name: context.provider
+          description: name of the provider. Set to empty string when not applicable.
+          in: query
+          required: false
+          type: string
+      tags:
+        - DataSourceService
   /api/v1/data_source/{id}:
     get:
       operationId: DataSourceService_GetDataSourceById
@@ -432,12 +499,12 @@ paths:
       tags:
         - DataSourceService
     delete:
-      operationId: DataSourceService_DeleteDataSource
+      operationId: DataSourceService_DeleteDataSourceById
       responses:
         '200':
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1DeleteDataSourceResponse'
+            $ref: '#/definitions/v1DeleteDataSourceByIdResponse'
       parameters:
         - name: id
           in: path
@@ -604,7 +671,8 @@ paths:
           description: |-
             cursor is the index to start from within the collection being
             retrieved. It's an opaque payload specified and interpreted on
-            an per-rpc basis.
+            an per-rpc basis. An empty string is used to indicate the first
+            item in the collection.
           in: query
           required: false
           type: string
@@ -613,7 +681,7 @@ paths:
             size is the number of items to retrieve from the collection.
             0 uses a server-defined default.
           in: query
-          required: false
+          required: true
           type: integer
           format: int64
       tags:
@@ -2276,6 +2344,18 @@ definitions:
       homoglyphs:
         $ref: '#/definitions/EvalHomoglyphs'
         description: homoglyphs is only used if the `homoglyphs` type is selected.
+      dataSources:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1DataSourceReference'
+        description: |-
+          Data sources that the rule refers to. These are used to
+          instantiate the relevant data sources for the rule and keep
+          track of them as dependencies.
+
+          Note that the data source must exist in the project hierarchy
+          in order to be used in the rule.
     description: |-
       Eval defines the data evaluation definition.
       This pertains to the way we traverse data from the upstream
@@ -2298,13 +2378,24 @@ definitions:
         description: builtin is the builtin data ingestion.
       artifact:
         $ref: '#/definitions/v1ArtifactType'
-        description: artifact is the artifact data ingestion.
+        description: |-
+          artifact is the artifact data ingestion.
+          artifact currently only applies to artifacts.
       git:
         $ref: '#/definitions/v1GitType'
-        description: git is the git data ingestion.
+        description: |-
+          git is the git data ingestion.
+          git currently only applies to repositories.
       diff:
         $ref: '#/definitions/v1DiffType'
-        description: diff is the diff data ingestion.
+        description: |-
+          diff is the diff data ingestion.
+          diff currently only applies to pull_requests.
+      deps:
+        $ref: '#/definitions/v1DepsType'
+        description: |-
+          deps is the deps data ingestion.
+          deps currently only applies to repositories.
     description: Ingest defines how the data is ingested.
   DefinitionRemediate:
     type: object
@@ -2317,6 +2408,16 @@ definitions:
         $ref: '#/definitions/RemediateGhBranchProtectionType'
       pullRequest:
         $ref: '#/definitions/RemediatePullRequestRemediation'
+  DepsTypeRepoConfigs:
+    type: object
+    properties:
+      branch:
+        type: string
+    description: >-
+      branch is the branch of the git repository, when applied to repository
+      entities.
+
+      Has no meaning or effect on other entity types.
   DiffTypeEcosystem:
     type: object
     properties:
@@ -2566,6 +2667,69 @@ definitions:
           entity is the entity to register. This is the same as the repository
           field, but uses the new UpstreamEntityRef message. This is what we'll
           migrate to eventually.
+  RestDataSourceDef:
+    type: object
+    properties:
+      endpoint:
+        type: string
+        description: |-
+          endpoint is the URL of the REST API. Note that endpoints are
+          templates that can be parameterized with variables. Parametrization
+          is done using RFC 6570.
+      method:
+        type: string
+        description: |-
+          method is the HTTP method to use for the request.
+          If left unset, it will default to "GET".
+      headers:
+        type: object
+        additionalProperties:
+          type: string
+        description: headers is a map of headers to send with the request.
+      bodyobj:
+        type: object
+        description: body is the body of the request.
+      bodystr:
+        type: string
+        description: bodystr is the body of the request as a string.
+      parse:
+        type: string
+        description: |-
+          parse is the parse configuration for the response.
+          This allows us to serialize the response into a structured format,
+          or not.
+          If left unset, the response will be treated as a string.
+          If set to "json", the response will be parsed as JSON.
+      fallback:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/RestDataSourceDefFallback'
+        description: |-
+          fallback is the fallback configuration for the response in case
+          of an unexpected status code.
+      expectedStatus:
+        type: array
+        items:
+          type: integer
+          format: int32
+        description: |-
+          expected_status is the expected status code for the response.
+          This may be repeated to allow for multiple expected status codes.
+          If left unset, it will default to 200.
+      inputSchema:
+        type: object
+        description: input_schema is the schema for the input to the REST API.
+    required:
+      - endpoint
+  RestDataSourceDefFallback:
+    type: object
+    properties:
+      httpStatus:
+        type: integer
+        format: int32
+      body:
+        type: string
   RuleTypeDefinition:
     type: object
     properties:
@@ -2616,6 +2780,7 @@ definitions:
         type: string
       owner:
         type: string
+        description: owner is the artifact owner. This is optional.
       name:
         type: string
       type:
@@ -2624,6 +2789,9 @@ definitions:
         type: string
       repository:
         type: string
+        description: |-
+          repository is the repository the artifact originated from.
+          This is optional.
       versions:
         type: array
         items:
@@ -2634,6 +2802,12 @@ definitions:
         format: date-time
       context:
         $ref: '#/definitions/v1Context'
+    required:
+      - artifactPk
+      - name
+      - type
+      - visibility
+      - createdAt
   v1ArtifactType:
     type: object
     description: ArtifactType defines the artifact data evaluation.
@@ -2652,6 +2826,9 @@ definitions:
       createdAt:
         type: string
         format: date-time
+    description: |-
+      ArtifactVersion is a version of an artifact.
+      This is currently not populated in any requests or responses.
   v1AssignRoleRequest:
     type: object
     properties:
@@ -2741,12 +2918,14 @@ definitions:
   v1CreateDataSourceRequest:
     type: object
     properties:
-      context:
-        $ref: '#/definitions/v1ContextV2'
+      dataSource:
+        $ref: '#/definitions/v1DataSource'
     title: DataSource service
   v1CreateDataSourceResponse:
     type: object
-    title: TODO
+    properties:
+      dataSource:
+        $ref: '#/definitions/v1DataSource'
   v1CreateEntityReconciliationTaskRequest:
     type: object
     properties:
@@ -2852,7 +3031,8 @@ definitions:
         description: |-
           cursor is the index to start from within the collection being
           retrieved. It's an opaque payload specified and interpreted on
-          an per-rpc basis.
+          an per-rpc basis. An empty string is used to indicate the first
+          item in the collection.
       size:
         type: integer
         format: int64
@@ -2864,6 +3044,8 @@ definitions:
       allow clients to specify the subset of records to retrieve by means
       of index within a collection, along with the number of items to
       retrieve.
+    required:
+      - size
   v1CursorPage:
     type: object
     properties:
@@ -2873,21 +3055,79 @@ definitions:
         description: Total number of records matching the request. This is optional.
       next:
         $ref: '#/definitions/v1Cursor'
-        description: |-
+        description: >-
           Cursor pointing to retrieve results logically placed after the
-          ones shipped with the message containing this struct.
+
+          ones shipped with the message containing this struct. This is
+          optional.
       prev:
         $ref: '#/definitions/v1Cursor'
-        description: |-
+        description: >-
           Cursor pointing to retrieve results logically placed before the
-          ones shipped with the message containing this struct.
+
+          ones shipped with the message containing this struct. This is
+          optional.
     description: |-
       CursorPage message used in response messages. Its purpose is to
       send to clients links pointing to next and/or previous collection
       subsets with respect to the one containing this struct.
-  v1DeleteDataSourceResponse:
+  v1DataSource:
     type: object
-    title: TODO
+    properties:
+      version:
+        type: string
+        description: version is the version of the data source API.
+      type:
+        type: string
+        title: type is the data source type
+      context:
+        $ref: '#/definitions/v1ContextV2'
+        description: |-
+          context is the context in which the data source is evaluated.
+          Note that in this case we only need the project in the
+          context, since data sources are not provider-specific.
+      name:
+        type: string
+        description: |-
+          name is the name of the data source.
+          Note that this is unique within a project hierarchy.
+          Names must be lowercase and can only contain letters, numbers,
+          hyphens, and underscores.
+      id:
+        type: string
+        description: id is the unique identifier of the data source.
+        readOnly: true
+      rest:
+        $ref: '#/definitions/v1RestDataSource'
+        description: rest is the REST data source driver.
+    description: |-
+      DataSource is a Data source instance. Data sources represent
+      external integrations that enrich the data in Minder, but do not
+      have explicit lifecycle objects (entities).  Integrations which
+      create entities are called Providers.
+    required:
+      - version
+      - name
+  v1DataSourceReference:
+    type: object
+    properties:
+      name:
+        type: string
+        description: refer to a data source by name.
+    description: |-
+      DataSourceReference is a reference to a data source.
+      Note that for a resource to refer to a data source the data source must
+      be available in the same project hierarchy.
+  v1DeleteDataSourceByIdResponse:
+    type: object
+    properties:
+      id:
+        type: string
+  v1DeleteDataSourceByNameResponse:
+    type: object
+    properties:
+      name:
+        type: string
   v1DeleteProfileResponse:
     type: object
   v1DeleteProjectResponse:
@@ -2923,6 +3163,16 @@ definitions:
     description: DeleteRuleTypeResponse is the response to delete a rule type.
   v1DeleteUserResponse:
     type: object
+  v1DepsType:
+    type: object
+    properties:
+      repo:
+        $ref: '#/definitions/DepsTypeRepoConfigs'
+    description: >-
+      DepsType defines the "deps" ingester which can extract depndencies in
+      protobom
+
+      format for rule evaluation.
   v1DiffType:
     type: object
     properties:
@@ -3095,6 +3345,9 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1ArtifactVersion'
+        description: This is optional and currently always nil.
+    required:
+      - artifact
   v1GetArtifactByNameResponse:
     type: object
     properties:
@@ -3105,6 +3358,9 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1ArtifactVersion'
+        description: This is optional and currently always nil.
+    required:
+      - artifact
   v1GetAuthorizationURLResponse:
     type: object
     properties:
@@ -3114,7 +3370,14 @@ definitions:
         type: string
   v1GetDataSourceByIdResponse:
     type: object
-    title: TODO
+    properties:
+      dataSource:
+        $ref: '#/definitions/v1DataSource'
+  v1GetDataSourceByNameResponse:
+    type: object
+    properties:
+      dataSource:
+        $ref: '#/definitions/v1DataSource'
   v1GetEvaluationHistoryResponse:
     type: object
     properties:
@@ -3319,6 +3582,8 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1Artifact'
+    required:
+      - results
   v1ListChildProjectsResponse:
     type: object
     properties:
@@ -3329,7 +3594,12 @@ definitions:
           $ref: '#/definitions/v1Project'
   v1ListDataSourcesResponse:
     type: object
-    title: TODO
+    properties:
+      dataSources:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1DataSource'
   v1ListEvaluationHistoryResponse:
     type: object
     properties:
@@ -3709,6 +3979,9 @@ definitions:
 
           This is an output-only field. It may be: "set", "unset",
           "not_applicable".
+      id:
+        type: string
+        description: id is the unique identifier of the provider.
   v1ProviderParameter:
     type: object
     properties:
@@ -3856,6 +4129,15 @@ definitions:
         description: |-
           project_display is the display name of the project to which the user
           is invited.
+  v1RestDataSource:
+    type: object
+    properties:
+      def:
+        type: object
+        additionalProperties:
+          $ref: '#/definitions/RestDataSourceDef'
+        description: defs is the list of definitions for the REST API.
+    description: RestDataSource is the REST data source driver.
   v1RestType:
     type: object
     properties:
@@ -4128,13 +4410,13 @@ definitions:
   v1UpdateDataSourceRequest:
     type: object
     properties:
-      context:
-        $ref: '#/definitions/v1ContextV2'
-      id:
-        type: string
+      dataSource:
+        $ref: '#/definitions/v1DataSource'
   v1UpdateDataSourceResponse:
     type: object
-    title: TODO
+    properties:
+      dataSource:
+        $ref: '#/definitions/v1DataSource'
   v1UpdateProfileRequest:
     type: object
     properties:
