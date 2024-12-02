@@ -282,7 +282,7 @@ paths:
             enrollment_nonce is the state parameter returned when enrolling the
             provider
           in: query
-          required: false
+          required: true
           type: string
       tags:
         - OAuthService
@@ -1000,7 +1000,7 @@ paths:
         - name: entity.type
           description: entity is the entity to get status for. Incompatible with `all`
           in: query
-          required: false
+          required: true
           type: string
           enum:
             - ENTITY_UNSPECIFIED
@@ -1018,9 +1018,12 @@ paths:
             id is the ID of the entity to get status for. Incompatible with
             `all`
           in: query
-          required: false
+          required: true
           type: string
         - name: all
+          description: |-
+            all is true if the status of all entities should be returned.
+            Incompatible with `entity`. This is optional.
           in: query
           required: false
           type: boolean
@@ -1030,10 +1033,16 @@ paths:
           required: false
           type: string
         - name: ruleType
+          description: |-
+            rule_type is the type of the rule to filter on.
+            This is optional.
           in: query
           required: false
           type: string
         - name: ruleName
+          description: |-
+            rule_name is the name of the rule to filter on.
+            This is optional.
           in: query
           required: false
           type: string
@@ -1615,6 +1624,9 @@ paths:
           required: false
           type: string
         - name: limit
+          description: |-
+            limit is the maximum number of results to return.
+            This is optional.
           in: query
           required: false
           type: string
@@ -1638,6 +1650,9 @@ paths:
           required: false
           type: string
         - name: cursor
+          description: |-
+            cursor is the cursor to use for the next page of results.
+            This is optional.
           in: query
           required: false
           type: string
@@ -1657,6 +1672,9 @@ paths:
           required: true
           type: string
         - name: limit
+          description: |-
+            limit is the maximum number of results to return.
+            This is optional.
           in: query
           required: false
           type: string
@@ -1680,6 +1698,9 @@ paths:
           required: false
           type: string
         - name: cursor
+          description: |-
+            cursor is the cursor to use for the next page of results.
+            This is optional.
           in: query
           required: false
           type: string
@@ -2369,6 +2390,8 @@ definitions:
       Eval defines the data evaluation definition.
       This pertains to the way we traverse data from the upstream
       endpoint and how we compare it to the rule.
+    required:
+      - type
   DefinitionIngest:
     type: object
     properties:
@@ -2406,6 +2429,8 @@ definitions:
           deps is the deps data ingestion.
           deps currently only applies to repositories.
     description: Ingest defines how the data is ingested.
+    required:
+      - type
   DefinitionRemediate:
     type: object
     properties:
@@ -2449,9 +2474,15 @@ definitions:
         title: Ingested points to the data retrieved in the `ingest` section
       profile:
         $ref: '#/definitions/JQComparisonOperator'
-        description: Profile points to the profile itself.
+        description: |-
+          Profile points to the profile itself.
+          This is mutually exclusive with the `constant` field.
       constant:
-        title: Constant points to a constant value
+        description: |-
+          Constant points to a constant value.
+          This is mutually exclusive with the `profile` field.
+    required:
+      - ingested
   EvalRego:
     type: object
     properties:
@@ -2478,6 +2509,8 @@ definitions:
           `constraints` type is selected. The default is `text`
           which returns human-readable text. The other option is
           `json` which returns a JSON array containing the violations.
+    required:
+      - def
   EvalTrusty:
     type: object
     properties:
@@ -2494,6 +2527,8 @@ definitions:
     properties:
       def:
         type: string
+    required:
+      - def
   ListEvaluationResultsResponseEntityEvaluationResults:
     type: object
     properties:
@@ -2676,6 +2711,9 @@ definitions:
     properties:
       repository:
         $ref: '#/definitions/v1UpstreamRepositoryRef'
+        description: |-
+          repository is the repository to register. This is optional if entity
+          is set.
       context:
         $ref: '#/definitions/v1Context'
       entity:
@@ -2683,7 +2721,7 @@ definitions:
         description: |-
           entity is the entity to register. This is the same as the repository
           field, but uses the new UpstreamEntityRef message. This is what we'll
-          migrate to eventually.
+          migrate to eventually. This is optional if repository is set.
   RestDataSourceDef:
     type: object
     properties:
@@ -2778,6 +2816,9 @@ definitions:
     description: >-
       Definition defines the rule type. It encompases the schema and the data
       evaluation.
+    required:
+      - ingest
+      - eval
   protobufNullValue:
     type: string
     enum:
@@ -2956,6 +2997,8 @@ definitions:
         description: >-
           context is the context in which the entity reconciliation task is
           created.
+    required:
+      - entity
   v1CreateEntityReconciliationTaskResponse:
     type: object
   v1CreateProfileRequest:
@@ -2964,11 +3007,15 @@ definitions:
       profile:
         $ref: '#/definitions/v1Profile'
     title: Profile service
+    required:
+      - profile
   v1CreateProfileResponse:
     type: object
     properties:
       profile:
         $ref: '#/definitions/v1Profile'
+    required:
+      - profile
   v1CreateProjectRequest:
     type: object
     properties:
@@ -2978,12 +3025,16 @@ definitions:
       name:
         type: string
         description: name is the name of the project to create.
+    required:
+      - name
   v1CreateProjectResponse:
     type: object
     properties:
       project:
         $ref: '#/definitions/v1Project'
         description: project is the project that was created.
+    required:
+      - project
   v1CreateProviderRequest:
     type: object
     properties:
@@ -3011,6 +3062,8 @@ definitions:
         $ref: '#/definitions/v1RuleType'
         description: rule_type is the rule type to be created.
     description: CreateRuleTypeRequest is the request to create a rule type.
+    required:
+      - ruleType
   v1CreateRuleTypeResponse:
     type: object
     properties:
@@ -3018,6 +3071,8 @@ definitions:
         $ref: '#/definitions/v1RuleType'
         description: rule_type is the rule type that was created.
     description: CreateRuleTypeResponse is the response to create a rule type.
+    required:
+      - ruleType
   v1CreateUserRequest:
     type: object
     title: User service
@@ -3042,6 +3097,12 @@ definitions:
         format: date-time
       context:
         $ref: '#/definitions/v1Context'
+    required:
+      - id
+      - projectId
+      - projectName
+      - identitySubject
+      - createdAt
   v1Cursor:
     type: object
     properties:
@@ -3155,6 +3216,8 @@ definitions:
       projectId:
         type: string
         description: project_id is the id of the project that was deleted.
+    required:
+      - projectId
   v1DeleteProviderByIDResponse:
     type: object
     properties:
@@ -3172,11 +3235,15 @@ definitions:
     properties:
       repositoryId:
         type: string
+    required:
+      - repositoryId
   v1DeleteRepositoryByNameResponse:
     type: object
     properties:
       name:
         type: string
+    required:
+      - name
   v1DeleteRuleTypeResponse:
     type: object
     description: DeleteRuleTypeResponse is the response to delete a rule type.
@@ -3238,6 +3305,9 @@ definitions:
       uniquely identify an entity
 
       such as (repo, 1), (artifact, 2), ...
+    required:
+      - type
+      - id
   v1EvalResultAlert:
     type: object
     properties:
@@ -3435,11 +3505,15 @@ definitions:
     properties:
       profile:
         $ref: '#/definitions/v1Profile'
+    required:
+      - profile
   v1GetProfileByNameResponse:
     type: object
     properties:
       profile:
         $ref: '#/definitions/v1Profile'
+    required:
+      - profile
   v1GetProfileStatusByNameResponse:
     type: object
     properties:
@@ -3452,6 +3526,8 @@ definitions:
           type: object
           $ref: '#/definitions/v1RuleEvaluationStatus'
         title: rule_evaluation_status is the status of the rules
+    required:
+      - profileStatus
   v1GetProfileStatusByProjectResponse:
     type: object
     properties:
@@ -3461,6 +3537,8 @@ definitions:
           type: object
           $ref: '#/definitions/v1ProfileStatus'
         title: profile_status is the status of the profile
+    required:
+      - profileStatus
   v1GetProviderResponse:
     type: object
     properties:
@@ -3472,11 +3550,15 @@ definitions:
     properties:
       repository:
         $ref: '#/definitions/v1Repository'
+    required:
+      - repository
   v1GetRepositoryByNameResponse:
     type: object
     properties:
       repository:
         $ref: '#/definitions/v1Repository'
+    required:
+      - repository
   v1GetRuleTypeByIdResponse:
     type: object
     properties:
@@ -3484,6 +3566,8 @@ definitions:
         $ref: '#/definitions/v1RuleType'
         description: rule_type is the rule type.
     description: GetRuleTypeByIdResponse is the response to get a rule type by id.
+    required:
+      - ruleType
   v1GetRuleTypeByNameResponse:
     type: object
     properties:
@@ -3491,6 +3575,8 @@ definitions:
         $ref: '#/definitions/v1RuleType'
         description: rule_type is the rule type.
     description: GetRuleTypeByNameResponse is the response to get a rule type by name.
+    required:
+      - ruleType
   v1GetUserResponse:
     type: object
     properties:
@@ -3507,6 +3593,9 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1ProjectRole'
+    required:
+      - user
+      - projectRoles
   v1GitHubAppParams:
     type: object
     properties:
@@ -3619,6 +3708,8 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1Project'
+    required:
+      - projects
   v1ListDataSourcesResponse:
     type: object
     properties:
@@ -3658,6 +3749,8 @@ definitions:
         description: >-
           Each entity selected by the list request will have _single_ entry in
           entities which contains results of all evaluations for each profile.
+    required:
+      - entities
   v1ListInvitationsResponse:
     type: object
     properties:
@@ -3674,6 +3767,8 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1Profile'
+    required:
+      - profiles
   v1ListProjectsResponse:
     type: object
     properties:
@@ -3682,6 +3777,8 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1Project'
+    required:
+      - projects
   v1ListProviderClassesResponse:
     type: object
     properties:
@@ -3720,6 +3817,9 @@ definitions:
           entities is the same list as the repositories, but it
           uses the new UpstreamEntityRef message. This is what
           we'll migrate to eventually.
+    required:
+      - results
+      - entities
   v1ListRepositoriesResponse:
     type: object
     properties:
@@ -3733,6 +3833,8 @@ definitions:
         title: >-
           cursor is the cursor to use for the next page of results, empty if at
           the end
+    required:
+      - results
   v1ListRoleAssignmentsResponse:
     type: object
     properties:
@@ -3770,17 +3872,23 @@ definitions:
           $ref: '#/definitions/v1RuleType'
         description: rule_types is the list of rule types.
     description: ListRuleTypesResponse is the response to list rule types.
+    required:
+      - ruleTypes
   v1PatchProfileResponse:
     type: object
     properties:
       profile:
         $ref: '#/definitions/v1Profile'
+    required:
+      - profile
   v1PatchProjectResponse:
     type: object
     properties:
       project:
         $ref: '#/definitions/v1Project'
         description: project is the project that was updated.
+    required:
+      - project
   v1PatchProviderResponse:
     type: object
     properties:
@@ -3894,7 +4002,9 @@ definitions:
       displayName:
         type: string
         description: display_name is the display name of the profile.
-    description: Profile defines a profile that is user defined.
+    description: |-
+      Profile defines a profile that is user defined.
+      All fields are optional because we want to allow partial updates.
   v1ProfileStatus:
     type: object
     properties:
@@ -3919,6 +4029,8 @@ definitions:
         type: string
         title: profile_display_name is the display name of the profile
     title: get the overall profile status as output
+    required:
+      - profileStatus
   v1Project:
     type: object
     properties:
@@ -3928,6 +4040,9 @@ definitions:
         type: string
       description:
         type: string
+        description: |-
+          description is a human-readable description of the project.
+          This is optional.
       createdAt:
         type: string
         format: date-time
@@ -3940,7 +4055,13 @@ definitions:
           display_name allows for a human-readable name to be used.
           display_names are short *non-unique* strings to provide
           a user-friendly name for presentation in lists, etc.
-    title: Project API Objects
+          This is optional.
+    description: Project API Objects. This is only used in responses.
+    required:
+      - projectId
+      - name
+      - createdAt
+      - updatedAt
   v1ProjectPatch:
     type: object
     properties:
@@ -3960,6 +4081,9 @@ definitions:
     title: >-
       ProjectRole has the project along with the role the user has in the
       project
+    required:
+      - role
+      - project
   v1Provider:
     type: object
     properties:
@@ -4034,6 +4158,8 @@ definitions:
       entity:
         type: string
         title: entity is the entity type
+    required:
+      - entity
   v1ReconcileEntityRegistrationResponse:
     type: object
   v1RegisterRepoResult:
@@ -4043,6 +4169,8 @@ definitions:
         $ref: '#/definitions/v1Repository'
       status:
         $ref: '#/definitions/v1RegisterRepoResultStatus'
+    required:
+      - status
   v1RegisterRepoResultStatus:
     type: object
     properties:
@@ -4057,6 +4185,9 @@ definitions:
         type: string
       repository:
         $ref: '#/definitions/v1UpstreamRepositoryRef'
+        description: |-
+          repository is the repository to register. This is optional if entity
+          is set.
       context:
         $ref: '#/definitions/v1Context'
       entity:
@@ -4064,12 +4195,14 @@ definitions:
         description: |-
           entity is the entity to register. This is the same as the repository
           field, but uses the new UpstreamEntityRef message. This is what we'll
-          migrate to eventually.
+          migrate to eventually. This is optional if repository is set.
   v1RegisterRepositoryResponse:
     type: object
     properties:
       result:
         $ref: '#/definitions/v1RegisterRepoResult'
+    required:
+      - result
   v1RegistrableUpstreamEntityRef:
     type: object
     properties:
@@ -4078,6 +4211,8 @@ definitions:
       registered:
         type: boolean
         description: True if the entity is already registered in Minder.
+    required:
+      - entity
   v1RemoveRoleResponse:
     type: object
     properties:
@@ -4092,7 +4227,10 @@ definitions:
     properties:
       id:
         type: string
-        title: This is optional when returning remote repositories
+        description: |-
+          id is the unique identifier of the repository within Minder.
+          It is always populated, but the optional keyword is used for
+          backwards compatibility.
       context:
         $ref: '#/definitions/v1Context'
       owner:
@@ -4134,6 +4272,13 @@ definitions:
       properties:
         type: object
         description: properties is a map of properties of the entity.
+    description: Repository API objects. This is only used in responses.
+    required:
+      - id
+      - owner
+      - name
+      - isPrivate
+      - isFork
   v1ResolveInvitationResponse:
     type: object
     properties:
@@ -4203,6 +4348,8 @@ definitions:
     description: |-
       RestType defines the rest data evaluation.
       This is used to fetch data from a REST endpoint.
+    required:
+      - endpoint
   v1RestTypeFallback:
     type: object
     properties:
@@ -4224,6 +4371,10 @@ definitions:
       description:
         type: string
         description: description is the description of the role.
+    required:
+      - name
+      - displayName
+      - description
   v1RoleAssignment:
     type: object
     properties:
@@ -4310,7 +4461,7 @@ definitions:
           external system
       severity:
         $ref: '#/definitions/v1Severity'
-        title: severity is the severity of the rule
+        description: severity is the severity of the rule. This may be empty.
       ruleEvaluationId:
         type: string
         title: rule_evaluation_id is the id of the rule evaluation
@@ -4326,6 +4477,12 @@ definitions:
         $ref: '#/definitions/v1RuleTypeReleasePhase'
         title: release_phase is the phase of the release
     title: get the status of the rules for a given profile
+    required:
+      - ruleId
+      - entity
+      - status
+      - ruleTypeName
+      - releasePhase
   v1RuleType:
     type: object
     properties:
@@ -4378,6 +4535,11 @@ definitions:
     description: |-
       RuleType defines rules that may or may not be user defined.
       The version is assumed from the folder's version.
+    required:
+      - name
+      - def
+      - description
+      - guidance
   v1RuleTypeReleasePhase:
     type: string
     enum:
@@ -4457,11 +4619,15 @@ definitions:
     properties:
       profile:
         $ref: '#/definitions/v1Profile'
+    required:
+      - profile
   v1UpdateProfileResponse:
     type: object
     properties:
       profile:
         $ref: '#/definitions/v1Profile'
+    required:
+      - profile
   v1UpdateProjectRequest:
     type: object
     properties:
@@ -4470,16 +4636,22 @@ definitions:
         description: context is the context in which the project is updated.
       displayName:
         type: string
-        description: display_name is the display name of the project to update.
+        description: |-
+          display_name is the display name of the project to update.
+          This is optional.
       description:
         type: string
-        description: description is the description of the project to update.
+        description: |-
+          description is the description of the project to update.
+          This is optional.
   v1UpdateProjectResponse:
     type: object
     properties:
       project:
         $ref: '#/definitions/v1Project'
         description: project is the project that was updated.
+    required:
+      - project
   v1UpdateRoleRequest:
     type: object
     properties:
@@ -4527,6 +4699,8 @@ definitions:
         $ref: '#/definitions/v1RuleType'
         description: rule_type is the rule type to be updated.
     description: UpdateRuleTypeRequest is the request to update a rule type.
+    required:
+      - ruleType
   v1UpdateRuleTypeResponse:
     type: object
     properties:
@@ -4534,6 +4708,8 @@ definitions:
         $ref: '#/definitions/v1RuleType'
         description: rule_type is the rule type that was updated.
     description: UpdateRuleTypeResponse is the response to update a rule type.
+    required:
+      - ruleType
   v1UpstreamEntityRef:
     type: object
     properties:
@@ -4562,6 +4738,11 @@ definitions:
     properties:
       owner:
         type: string
+        description: >-
+          owner is the owner (e.g GitHub org) that the provider is associated
+          with.
+
+          This is optional.
       name:
         type: string
       repoId:
@@ -4577,6 +4758,8 @@ definitions:
         description: |-
           True if the repository is already registered in Minder.
           This is only set on output, and is ignored on input.
+    required:
+      - name
   v1UserRecord:
     type: object
     properties:
@@ -4592,20 +4775,33 @@ definitions:
         type: string
         format: date-time
     title: user record to be returned
+    required:
+      - id
+      - identitySubject
+      - createdAt
+      - updatedAt
   v1VerifyProviderCredentialResponse:
     type: object
     properties:
       created:
         type: boolean
+        description: created is true if the provider was created.
       providerName:
         type: string
+        description: |-
+          provider_name is the name of the provider that was created.
+          This is populated if creation was successful.
     title: >-
       VerifyProviderCredentialRequest responds with a boolean indicating if the
       provider has been created and the provider
 
       name, if it has been created
+    required:
+      - created
   v1VerifyProviderTokenFromResponse:
     type: object
     properties:
       status:
         type: string
+    required:
+      - status
